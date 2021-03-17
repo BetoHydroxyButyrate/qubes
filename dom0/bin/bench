@@ -1,0 +1,95 @@
+#!/usr/bin/bash
+
+qube="debian-10-minimal"
+res="/home/nimda/Desktop/bench_$(date +%Y-%m-%d_%T)"
+
+
+get_real_time() {
+    local rc=0
+    declare -n ret=${1?"usage: get_real_time rv [idx]"}
+    trc_idx=${2-''}
+
+    # if requested, run xentrace
+    #
+    [[ ! -z "${trc_idx}" ]] && {
+	mkdir -p ${res} || { echo "cannot create $res"; exit 1; }
+	xentrace -T 60 ${res}/${trc_idx}.trc &
+    }
+
+    # /usr/bin/time writes timing info to stderr
+    #
+    ret="$(/usr/bin/time -f '%e' qvm-start --quiet ${qube} 2>&1)"
+    rc=$?
+
+    [[ $rc != 0 ]] && {
+	>&2 echo "qvm-start failed: rc = $rc"
+	>&2 echo $ret
+	rc=1
+    }
+
+    [[ ! -z "${trc_idx}" ]] && {
+	pkill -1 xentrace
+    }
+
+    [[ $rc == 0 ]] && {
+	qvm-kill -q ${qube} >/dev/null 2>&1
+    }
+    [[ $rc != 0 ]] && {
+	exit $rc
+    }
+
+    return $rc
+}
+
+benchmark() {
+    typeset -i n=5
+    res="import math"
+    res+=";samples=("
+    sep=''
+    
+    typeset -i sysusb=$(qvm-ls --running --raw-data | grep '^sys-usb[|]' | wc -l)
+    typeset -i nvm=$(qvm-ls --running --raw-data | grep -v '^sys-usb[|]' | wc -l)
+
+    while [[ $nvm != 1 ]]; do
+	qvm-ls --running | grep -v -e '^dom0 ' -e '^sys-usb '
+	echo -n "Shutdown? Enter 'y' to shutdown: "
+	read ans
+	[[ "$ans" ==  'y' ]] && {
+	    qvm-shutdown --all --exclude sys-usb --wait -q
+	}
+	sleep 1
+	nvm=$(qvm-ls --running --raw-data | grep -v '^sys-usb[|]' | wc -l)
+    done
+
+    for ((i = 0; i < $n; i++)); do
+	[[ $i != 0 ]] && sleep 10
+	if [[ "$1" != "no" ]]; then 
+	    get_real_time t $i
+	else
+	    get_real_time t
+	fi
+	echo "t$i=$t"
+	res+="${sep}$t"
+	sep=', '
+    done
+
+    res+=')'
+
+    res+=';n=len(samples)'
+    res+=';mu=0.0'
+    res+=';for s in samples: mu += s'
+    res+=';mu /= n'
+
+    res+=';var=0.0'
+    res+=';for s in samples: var += (s-mu)*(s-mu)'
+    res+=';var /= (n-1)'
+
+    res+=';print("mu=%.3f var=%.3f sigma=%.3f" % (mu, var, math.sqrt(var)))'
+
+    echo "$res"
+    echo $(echo "$res" | tr ';' '\n' | python3)
+}
+
+xentrace=${1-'no'}
+
+benchmark $xentrace

@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 qube="debian-10-minimal"
-res="/home/nimda/Desktop/bench_$(date +%Y-%m-%d_%T)"
+res="/home/${USER}/Desktop/bench_$(date +%Y-%m-%d_%T)"
 
 
 get_real_time() {
@@ -86,7 +86,7 @@ benchmark() {
 
     res+=';print("mu=%.3f var=%.3f sigma=%.3f" % (mu, var, math.sqrt(var)))'
 
-    echo "$res"
+    # echo "$res"
     echo $(echo "$res" | tr ';' '\n' | python3)
 }
 

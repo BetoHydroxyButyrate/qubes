@@ -5,7 +5,7 @@ TMPL=${1?"$Usage"}
 
 qvm-shutdown --wait sys-firewall
 qvm-shutdown --wait sys-net
-qvm-prefs sys-firewall template ${TML}
-qvm-prefs sys-net template ${TML}
+qvm-prefs sys-firewall template ${TMPL}
+qvm-prefs sys-net template ${TMPL}
 qvm-start sys-net
 qvm-start sys-firewall

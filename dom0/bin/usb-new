@@ -4,5 +4,5 @@ Usage="usb-new template"
 TMPL=${1?"$Usage"}
 
 qvm-shutdown --wait sys-usb
-qvm-prefs sys-usb template ${TML}
+qvm-prefs sys-usb template ${TMPL}
 qvm-start sys-usb

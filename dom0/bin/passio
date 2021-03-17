@@ -1,0 +1,7 @@
+#!/usr/bin/bash
+
+Usage="passio vm src"
+VM=${1?$Usage}
+SRC=${2?$Usage}
+
+qvm-run --pass-io ${VM} "cat ${SRC}"

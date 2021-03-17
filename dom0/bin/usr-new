@@ -1,0 +1,13 @@
+#!/usr/bin/bash
+
+Usage="usr-new old new"
+
+OLD=${1?"$Usage"}
+NEW=${2?"$Usage"}
+
+oldies=$(qvm-ls --raw-data --fields=name,template | grep "${OLD}\$")
+
+for o in $oldies:; do
+	vm=${o/|*}
+	qvm-shutdown --wait $vm && qvm-prefs $vm template ${NEW}
+done

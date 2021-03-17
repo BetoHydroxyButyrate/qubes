@@ -1,0 +1,11 @@
+#!/usr/bin/bash
+
+Usage="net-new template"
+TMPL=${1?"$Usage"}
+
+qvm-shutdown --wait sys-firewall
+qvm-shutdown --wait sys-net
+qvm-prefs sys-firewall template ${TML}
+qvm-prefs sys-net template ${TML}
+qvm-start sys-net
+qvm-start sys-firewall

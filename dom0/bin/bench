@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 qube="debian-10-minimal"
-res="/home/${USER}/Desktop/bench_$(date +%Y-%m-%d_%T)"
+res="/root/bench_$(date +%Y-%m-%d_%T)"
 
 
 get_real_time() {
